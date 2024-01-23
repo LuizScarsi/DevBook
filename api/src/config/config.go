@@ -21,7 +21,7 @@ var (
 func Load() {
 	var err error
 	if err = godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file:", err)
+		log.Fatal("Error loading .env file: ", err)
 	}
 
 	Port, err = strconv.Atoi(os.Getenv("API_PORT"))
