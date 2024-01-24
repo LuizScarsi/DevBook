@@ -5,6 +5,7 @@ import (
 	"api/src/models"
 	"api/src/repos"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -28,7 +29,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := repos.NewUsersRepo(db)
-	repo.Create(user)
+	userID, err := repo.Create(user)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	w.Write([]byte(fmt.Sprintf("Inserted ID: %v", userID)))
 }
 
 // SearchUsers is a handler function for searching users.
