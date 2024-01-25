@@ -4,10 +4,9 @@ import (
 	"api/src/db"
 	"api/src/models"
 	"api/src/repos"
+	"api/src/responses"
 	"encoding/json"
-	"fmt"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -15,27 +14,31 @@ import (
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
 	}
 
 	var user models.User
 	if err = json.Unmarshal(reqBody, &user); err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusBadRequest, err)
+		return
 	}
 
 	db, err := db.Connect()
 	if err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
 	}
 	defer db.Close()
 
 	repo := repos.NewUsersRepo(db)
-	userID, err := repo.Create(user)
+	user.ID, err = repo.Create(user)
 	if err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("Inserted ID: %v", userID)))
+	responses.JSON(w, http.StatusCreated, user)
 }
 
 // SearchUsers is a handler function for searching users.
