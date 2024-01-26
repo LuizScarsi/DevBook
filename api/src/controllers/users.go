@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 )
 
 // CreateUser is a handler function for creating a new user.
@@ -48,7 +49,23 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 // SearchUsers is a handler function for searching users.
 func SearchUsers(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Searching users"))
+	nameOrNick := strings.ToLower(r.URL.Query().Get("user"))
+
+	db, err := db.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return 
+	}
+	defer db.Close()
+
+	repo := repos.NewUsersRepo(db)
+	users, err := repo.Search(nameOrNick)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusOK, users)
 }
 
 // SearchUser is a handler function for searching a specific user.
