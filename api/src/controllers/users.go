@@ -8,7 +8,10 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 // CreateUser is a handler function for creating a new user.
@@ -70,7 +73,29 @@ func SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 // SearchUser is a handler function for searching a specific user.
 func SearchUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Searching user"))
+	params := mux.Vars(r)
+
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	db, err := db.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repo := repos.NewUsersRepo(db)
+	user, err := repo.SearchByID(userID)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusOK, user)
 }
 
 // UpdateUser is a handler function for updating user information.
