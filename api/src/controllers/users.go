@@ -28,7 +28,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = user.Prepare(); err != nil {
+	if err = user.Prepare("register"); err != nil {
 		responses.Error(w, http.StatusBadRequest, err)
 		return
 	}
@@ -100,7 +100,44 @@ func SearchUser(w http.ResponseWriter, r *http.Request) {
 
 // UpdateUser is a handler function for updating user information.
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Updating user"))
+	params := mux.Vars(r)
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	reqBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	var user models.User
+	if err = json.Unmarshal(reqBody, &user); err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+	
+	if err = user.Prepare("edit"); err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := db.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repo := repos.NewUsersRepo(db)
+	if err = repo.Update(userID, user); err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusNoContent, nil)
 }
 
 // DeleteUser is a handler function for deleting a user.

@@ -17,20 +17,20 @@ type User struct {
 }
 
 // Prepare calls methods to validate and format received user
-func (user *User) Prepare() error {
-	if err := user.validate(); err != nil {
+func (user *User) Prepare(step string) error {
+	if err := user.validate(step); err != nil {
 		return err
 	}
 	
 	user.format()
 	return nil
 }
-func (user *User) validate() error {
+func (user *User) validate(step string) error {
 	if user.Name == "" {
 		return errors.New("name field is required and cannot be empty")
 	}
 
-	if user.Nick== "" {
+	if user.Nick == "" {
 		return errors.New("nick field is required and cannot be empty")
 	}
 
@@ -38,7 +38,7 @@ func (user *User) validate() error {
 		return errors.New("email field is required and cannot be empty")
 	}
 
-	if user.Password == "" {
+	if step == "register" && user.Password == "" {
 		return errors.New("password field is required and cannot be empty")
 	}
 
