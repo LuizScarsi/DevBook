@@ -94,6 +94,25 @@ func (repo Users) SearchByID(ID uint64) (models.User, error) {
 	return user, nil
 }
 
+// SearchByEmail searches a user by its email, returns user's ID and hashed password
+func (repo Users) SearchByEmail(email string) (models.User, error) {
+	line, err := repo.db.Query("selec id, password from users where email = ?", email)
+	if err != nil {
+		return models.User{}, err
+	}
+	defer line.Close()
+
+	var user models.User
+
+	if line.Next() {
+		if err = line.Scan(&user.ID, &user.Password); err != nil {
+			return models.User{}, err
+		}
+	}
+	
+	return user, nil
+}
+
 // Update alters user information in db
 func (repo Users) Update(ID uint64, user models.User) error {
 	statement, err := repo.db.Prepare("update users set name = ?, nick = ?, email = ? where id = ?")
