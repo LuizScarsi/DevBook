@@ -15,6 +15,9 @@ var (
 	
 	// PORT used to run the API
 	Port int
+
+	// SecretKey used to generate JWT token
+	SecretKey []byte
 )
 
 // Load will initialize env variables
@@ -34,4 +37,6 @@ func Load() {
 		os.Getenv("DB_PASSWD"),
 		os.Getenv("DB_NAME"),
 	)
+
+	SecretKey = []byte(os.Getenv("SECRET_KEY"))
 }
