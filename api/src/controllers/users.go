@@ -59,7 +59,7 @@ func SearchUsers(w http.ResponseWriter, r *http.Request) {
 	db, err := db.Connect()
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
-		return 
+		return
 	}
 	defer db.Close()
 
@@ -131,7 +131,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		responses.Error(w, http.StatusBadRequest, err)
 		return
 	}
-	
+
 	if err = user.Prepare("edit"); err != nil {
 		responses.Error(w, http.StatusBadRequest, err)
 		return
@@ -159,6 +159,17 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseUint(params["userId"], 10, 64)
 	if err != nil {
 		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	tokenUserID, err := auth.ExtractUserID(r)
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	if userID != tokenUserID {
+		responses.Error(w, http.StatusForbidden, errors.New("It's not possible to delete another user"))
 		return
 	}
 
