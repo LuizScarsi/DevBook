@@ -42,8 +42,8 @@ func (repo Users) Search(nameOrNick string) ([]models.User, error) {
 	nameOrNick = fmt.Sprintf("%%%s%%", nameOrNick) // %nameOrNick%
 
 	lines, err := repo.db.Query("select id, name, nick, email, createdAt from users where name like ? or nick like ?",
-	nameOrNick, nameOrNick)
-	
+		nameOrNick, nameOrNick)
+
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (repo Users) SearchByEmail(email string) (models.User, error) {
 			return models.User{}, err
 		}
 	}
-	
+
 	return user, nil
 }
 
@@ -128,6 +128,7 @@ func (repo Users) Update(ID uint64, user models.User) error {
 	return nil
 }
 
+// Delete removes an user from db
 func (repo Users) Delete(ID uint64) error {
 	statement, err := repo.db.Prepare("delete from users where id = ?")
 	if err != nil {
@@ -136,6 +137,23 @@ func (repo Users) Delete(ID uint64) error {
 	defer statement.Close()
 
 	if _, err = statement.Exec(ID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Follow lets an user follow another user
+func (repo Users) Follow(userID, followerID uint64) error {
+	statement, err := repo.db.Prepare(
+		"insert ignore into followers (user_id, follower_id) values (?, ?)",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err = statement.Exec(userID, followerID); err != nil {
 		return err
 	}
 
