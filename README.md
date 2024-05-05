@@ -1,1 +1,1 @@
-# DevBook
+Golang course project
